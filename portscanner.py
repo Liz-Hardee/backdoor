@@ -1,7 +1,6 @@
 import sys
 import socket
 from IPy import IP
-from sympy import arg
 
 def option_list():
     print('\n\n                       --OPTIONS--')
