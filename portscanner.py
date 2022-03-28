@@ -1,6 +1,7 @@
 import sys
 import socket
 from IPy import IP
+from sympy import arg
 
 def option_list():
     print('\n\n                       --OPTIONS--')
@@ -24,6 +25,13 @@ def scan_port(ipaddress, port):
     except:
         print('Port ' + str(port) + ' is closed')
 
+def try_ports(ipaddress):
+    converted_ip = check_ip(ipaddress)
+    print('\nIP: ' + str(converted_ip))
+    for port in (20, 21, 22, 23,25,53, 80, 110, 119,
+                 123, 143, 161, 194, 443):
+        scan_port(converted_ip, port)
+
 arglst = iter(sys.argv)
 
 for option in arglst:
@@ -31,24 +39,17 @@ for option in arglst:
         option_list()
         exit()
     elif str(option) == '-i' or str(option) == '--ipaddress':
-        ipaddress = next(arglst)
-        converted_ip = check_ip(ipaddress)
-        print('\nIP: ' + str(converted_ip))
-        for port in (20, 21, 22, 23,25,53, 80, 110, 119,
-                     123, 143, 161, 194, 443):
-            scan_port(converted_ip, port)
+        try: 
+            try_ports(next(arglst))
+        except StopIteration:
+            print('Please enter a valid IP or hostname\n')
         exit()
     elif str(option) == '-l' or str(option) == '--list':
         while arglst:
             try:
-                ipaddress = next(arglst)
+                try_ports(next(arglst))
             except StopIteration:
                 break
-            converted_ip = check_ip(ipaddress)
-            print('\nIP: ' + str(converted_ip))
-            for port in (20, 21, 22, 23,25,53, 80, 110, 119,
-                         123, 143, 161, 194, 443):
-                scan_port(converted_ip, port)
                 
 
 
