@@ -1,9 +1,6 @@
-from asyncio import protocols
 import sys
 import socket
-from tabnanny import check
 from IPy import IP
-from sympy import arg
 
 def option_list():
     print('\n\n                       --OPTIONS--')
