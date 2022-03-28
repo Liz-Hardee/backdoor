@@ -11,6 +11,7 @@ def option_list():
 def check_ip(ipaddress):
     try:
         IP(ipaddress)
+        return(ipaddress)
     except ValueError:
         return socket.gethostbyname(ipaddress)
 
@@ -33,7 +34,8 @@ for option in arglst:
         ipaddress = next(arglst)
         converted_ip = check_ip(ipaddress)
         print('\nIP: ' + str(converted_ip))
-        for port in (80, 22, 8080):
+        for port in (20, 21, 22, 23,25,53, 80, 110, 119,
+                     123, 143, 161, 194, 443):
             scan_port(converted_ip, port)
         exit()
     elif str(option) == '-l' or str(option) == '--list':
