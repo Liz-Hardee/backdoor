@@ -12,6 +12,8 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "-i", "24.22.0.81"
+                "-v", "-o", "-i", "opensource.org"
+            ]
+        }
     ]
 }
