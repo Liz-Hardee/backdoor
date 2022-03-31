@@ -1,11 +1,11 @@
+import enum
 import sys
 import socket
 import datetime
 import dns.reversename, dns.resolver
+import re
 from IPy import IP
 from os.path import exists
-
-from sympy import O
 
 def option_list():
     print('\n\n                       --OPTIONS--')
@@ -18,11 +18,20 @@ def check_ip(ipaddress):
         IP(ipaddress)
         return(ipaddress)
     except ValueError:
-        return socket.gethostbyname(ipaddress)
+        try:
+            return socket.gethostbyname(ipaddress)
+        except:
+            print('Invalid target/s. Check target list for syntax errors.')
 
 def get_dns(ipaddress):
-    address = dns.reversename.from_address(str(ipaddress))
-    return (str(dns.resolver.resolve(address, 'PTR')[0]))
+    try:
+        address = dns.reversename.from_address(str(ipaddress))
+        return (str(dns.resolver.resolve(address, 'PTR')[0]))
+    except:
+        if re.search('.*\..*\..*\..*', str(ipaddress)):
+            return 'none'
+        else:
+            return 'Invalid Host'
 
 def write_ports(ipaddress, dnsname, portlist):
     if exists('scanlog.log'):
@@ -34,23 +43,23 @@ def write_ports(ipaddress, dnsname, portlist):
                          'IP: ' + str(ipaddress) + '\n', 
                          'Date Scanned: ' + str(datetime.datetime.now()) + 
                          '\n', 'Open Ports: '])
+        if len(portlist) == 0:
+            wfile.write('None')
         for port in portlist:
             wfile.write(str(port) + ', ')
         wfile.write('\n\n')
-
-
+        wfile.close()
 
 def scan_port(ipaddress, port):
     try:
         sock = socket.socket()
-        sock.settimeout(0.2)
+        sock.settimeout(0.1)
         sock.connect((ipaddress, port))
         if '-v' in sys.argv:
             print('Port ' + str(port) + ' is open')
             return port
     except:
         if '-v' in sys.argv:
-            print('Port ' + str(port) + ' is closed')
             return 0
 
 def try_ports(ipaddress):
@@ -73,25 +82,35 @@ def try_ports(ipaddress):
         except:
             print('Error: Unable to write to file\n')
 
-arglst = iter(sys.argv)
+def load_list(arglst):
+    rfile = open(next(arglst))
+    iplist = rfile.readlines()
+    return iplist
 
-for option in arglst:
-    if (str(option) == '-h' or str(option) == '--help' or
-        len(sys.argv) == 1):
-        option_list()
-        exit()
-    elif str(option) == '-i' or str(option) == '--ipaddress':
-        try: 
-            try_ports(next(arglst))
-        except StopIteration:
-            print('Please enter a valid IP or hostname\n')
-        exit()
-    elif str(option) == '-l' or str(option) == '--list':
-        while arglst:
+
+
+def main_switch():
+    for index, option in enumerate(sys.argv):
+        if option == '-h' or option == '--help' or len(sys.argv) == 1:
+            option_list()
+            exit()
+        elif option == '-i' or option =='--ipaddress':
+            try: 
+                try_ports(sys.argv[index + 1])
+            except:
+                print('Please enter a valid IP or hostname\n')
+            exit()
+        elif option == '-l' or option == '--list':
             try:
-                try_ports(next(arglst))
-            except StopIteration:
-                break
-                
+                rfile = open(sys.argv[index + 1])
+                iplist = map(str.strip, rfile.readlines())
+                for ip in iplist:
+                    try_ports(ip)
+            except FileNotFoundError:
+                ip_iter = index
+                while ip_iter < len(sys.argv) - 1:
+                    ip_iter += 1
+                    try_ports(sys.argv[ip_iter])
+            exit()
 
-
+main_switch()
