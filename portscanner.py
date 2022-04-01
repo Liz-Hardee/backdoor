@@ -38,8 +38,8 @@ def get_dns(ipaddress):
 def check_writefile():
     for index, option in enumerate(sys.argv):
         if option == '-o':
-            if re.search('-.*', sys.argv[index + 1]):
-                print(sys.argv[index + 1])
+            if not re.search('-.*', sys.argv[index + 1]):
+                return sys.argv[index + 1]
     config = configparser.ConfigParser()
     config.readfp(open(r'backdoor.config'))
     return config.get('portscanner', 'outfile')
