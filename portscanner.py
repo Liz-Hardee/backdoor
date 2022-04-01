@@ -1,4 +1,3 @@
-import enum
 import sys
 import socket
 import datetime
@@ -8,10 +7,12 @@ from IPy import IP
 from os.path import exists
 
 def option_list():
-    print('\n\n                       --OPTIONS--')
+    print('\n\n                       --OPTIONS--\n')
     print('-i, --ipaddress......provide target ip from command line\n')
     print('-l, --list........provide a list or .csv of IPs or hosts\n')
-    print('-h, --help................................prints options\n\n')
+    print('-o...........................write scan  results to file\n')
+    print('-v.........................print scan results to termial\n')
+    print('-h, --help..............................prints this menu\n\n')
 
 def check_ip(ipaddress):
     try:
@@ -21,7 +22,7 @@ def check_ip(ipaddress):
         try:
             return socket.gethostbyname(ipaddress)
         except:
-            print('Invalid target/s. Check target list for syntax errors.')
+            print('Invalid target/s. Check target/s for syntax errors.')
 
 def get_dns(ipaddress):
     try:
@@ -81,13 +82,6 @@ def try_ports(ipaddress):
                 print('File successfully written\n')
         except:
             print('Error: Unable to write to file\n')
-
-def load_list(arglst):
-    rfile = open(next(arglst))
-    iplist = rfile.readlines()
-    return iplist
-
-
 
 def main_switch():
     for index, option in enumerate(sys.argv):
