@@ -12,7 +12,7 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "-v", "-l", "tasdfas"
+                "-o", "-i", "192.168.1.13"
             ]
         }
     ]

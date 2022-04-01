@@ -3,6 +3,7 @@ import socket
 import datetime
 import dns.reversename, dns.resolver
 import re
+import configparser
 from IPy import IP
 from os.path import exists
 
@@ -34,12 +35,22 @@ def get_dns(ipaddress):
         else:
             return 'Invalid Host'
 
+def check_writefile():
+    for index, option in enumerate(sys.argv):
+        if option == '-o':
+            if re.search('-.*', sys.argv[index + 1]):
+                print(sys.argv[index + 1])
+    config = configparser.ConfigParser()
+    config.readfp(open(r'backdoor.config'))
+    return config.get('portscanner', 'outfile')
+
 def write_ports(ipaddress, dnsname, portlist):
-    if exists('scanlog.log'):
+    outfile = check_writefile()
+    if exists(outfile):
         access = 'a'
     else:
         access = 'w'
-    with open('scanlog.log', access) as wfile:
+    with open(outfile, access) as wfile:
         wfile.writelines(['Hostname: ' + dnsname + '\n', 
                          'IP: ' + str(ipaddress) + '\n', 
                          'Date Scanned: ' + str(datetime.datetime.now()) + 
@@ -58,10 +69,9 @@ def scan_port(ipaddress, port):
         sock.connect((ipaddress, port))
         if '-v' in sys.argv:
             print('Port ' + str(port) + ' is open')
-            return port
+        return port
     except:
-        if '-v' in sys.argv:
-            return 0
+        return 0
 
 def try_ports(ipaddress):
     openports = []
