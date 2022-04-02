@@ -12,7 +12,7 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "args": [
-                "-o", "-i", "192.168.1.13"
+                "-v", "-i", "opensource.org"
             ]
         }
     ]

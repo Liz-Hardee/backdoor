@@ -7,6 +7,8 @@ import configparser
 from IPy import IP
 from os.path import exists
 
+from numpy import inexact
+
 def option_list():
     print('\n\n                       --OPTIONS--\n')
     print('-i, --ipaddress......provide target ip from command line\n')
@@ -40,11 +42,22 @@ def check_writefile():
         if option == '-o':
             if not re.search('-.*', sys.argv[index + 1]):
                 return sys.argv[index + 1]
-    config = configparser.ConfigParser()
-    config.readfp(open(r'backdoor.config'))
+    with open('backdoor.config', 'r') as cfile:
+        config = configparser.ConfigParser()
+        config.read_file(cfile)
     return config.get('portscanner', 'outfile')
 
-def write_ports(ipaddress, dnsname, portlist):
+def check_timeout():
+    for index, option in enumerate(sys.argv):
+        if option == '-t':
+            if not re.search('-.*', sys.argv[index +1]):
+                return sys.argv[index + 1]
+    with open('backdoor.config', 'r') as cfile:
+        config = configparser.ConfigParser()
+        config.read_file(cfile)
+    return config.get('portscanner', 'timeout')
+
+def write_ports(banners, ipaddress, dnsname, portlist):
     outfile = check_writefile()
     if exists(outfile):
         access = 'a'
@@ -57,41 +70,48 @@ def write_ports(ipaddress, dnsname, portlist):
                          '\n', 'Open Ports: '])
         if len(portlist) == 0:
             wfile.write('None')
-        for port in portlist:
-            wfile.write(str(port) + ', ')
+        for index, port in enumerate(portlist):
+            wfile.write('\n' + str(port) + ': ' + banners[index])
         wfile.write('\n\n')
         wfile.close()
 
-def scan_port(ipaddress, port):
-    try:
-        sock = socket.socket()
-        sock.settimeout(0.1)
-        sock.connect((ipaddress, port))
-        if '-v' in sys.argv:
-            print('Port ' + str(port) + ' is open')
-        return port
-    except:
-        return 0
+def get_banner(s):
+    return s.recv(1024)
 
-def try_ports(ipaddress):
+def scan_port(ipaddress):
     openports = []
+    banners = []
     converted_ip = check_ip(ipaddress)
     converted_dns = get_dns(converted_ip)
     if '-v' in sys.argv:
         print('\nHostname: ' + converted_dns)
         print('\nIP: ' + str(converted_ip))
-    for port in (20, 21, 22, 23,25,53, 80, 110, 119,
+    for port in (20, 21, 22, 23, 25, 53, 80, 110, 119,
                  123, 143, 161, 194, 443, 32400):
-        currport = scan_port(converted_ip, port)
-        if currport != 0: 
-            openports.append(currport)
+        if '-v' in sys.argv:
+            print('Scanning port ' + str(port) + '...')
+        try:
+            sock = socket.socket()
+            sock.settimeout(float(check_timeout()))
+            sock.connect((ipaddress, port))
+            try:
+                banner = str(get_banner(sock))
+            except:
+                banner = "no banner found"
+            openports.append(port)
+            if '-v' in sys.argv:
+                print('Port ' + str(port) + ' is open')
+                print(banner)
+            banners.append(banner)
+        except:
+            pass
     if '-o' in sys.argv:
         try:
-            write_ports(converted_ip, converted_dns, openports)
+            write_ports(banners, converted_ip, converted_dns, openports)
             if '-v' in sys.argv:
-                print('File successfully written\n')
+                print('File sucessfully written\n')
         except:
-            print('Error: Unable to write to file\n')
+            print('Error: Unable to write file\n')
 
 def main_switch():
     for index, option in enumerate(sys.argv):
@@ -100,7 +120,7 @@ def main_switch():
             exit()
         elif option == '-i' or option =='--ipaddress':
             try: 
-                try_ports(sys.argv[index + 1])
+                scan_port(sys.argv[index + 1])
             except:
                 print('Please enter a valid IP or hostname\n')
             exit()
@@ -109,12 +129,13 @@ def main_switch():
                 rfile = open(sys.argv[index + 1])
                 iplist = map(str.strip, rfile.readlines())
                 for ip in iplist:
-                    try_ports(ip)
+                    scan_port(ip)
             except FileNotFoundError:
                 ip_iter = index
                 while ip_iter < len(sys.argv) - 1:
                     ip_iter += 1
-                    try_ports(sys.argv[ip_iter])
+                    scan_port(sys.argv[ip_iter])
             exit()
 
-main_switch()
+if __name__ == '__main__':
+    main_switch()

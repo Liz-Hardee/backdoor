@@ -1,2 +1,5 @@
 # Don't track log files
 *.log
+
+# Don't track text files
+*.txt
