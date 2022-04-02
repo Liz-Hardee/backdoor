@@ -7,8 +7,6 @@ import configparser
 from IPy import IP
 from os.path import exists
 
-from numpy import inexact
-
 def option_list():
     print('\n\n                       --OPTIONS--\n')
     print('-i, --ipaddress......provide target ip from command line\n')
